@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="d3.min.js"></script>
+  </head>
+  <body></body>
+  <script>
+    var w = 800;
+    var h = 600;
+    var dataset = [];
+    for (let i = 0; i < 50; i++) {
+      let e = Math.floor(Math.random() * Math.floor(25));
+      dataset.push(e);
+    }
+    //var dataset = [4,10,13,156,63,13,56,96,2,46,34,85,45,12,68,47,91,42];
+
+    var svg = d3
+      .select("body")
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h);
+    var RectGroup = svg.append("g");
+
+    var xScale = d3
+      .scaleBand()
+      .domain(d3.range(dataset.length))
+      .range([0, w])
+      .paddingInner(0.1);
+    var yScale = d3
+      .scaleLinear()
+      .domain([0, d3.max(dataset)])
+      .range([0, h - 20]);
+
+    RectGroup.selectAll("rect")
+      .data(dataset)
+      .enter()
+      .append("rect")
+      .attr("x", (d, i) => xScale(i))
+      .attr("y", (d) => h - yScale(d))
+      .attr("width", xScale.bandwidth())
+      .attr("height", (d) => yScale(d))
+      .attr("fill", (d) => "rgb(0, 0," + d * 10 + ")");
+
+    svg
+      .selectAll("text")
+      .data(dataset)
+      .enter()
+      .append("text")
+      .text((d) => d)
+      .attr("text-anchor", "middle")
+      .attr("x", (d, i) => xScale(i) + xScale.bandwidth() / 2)
+      .attr("y", (d) => h - yScale(d) + 14)
+      .attr("font-family", "sans-serif")
+      .attr("font-soze", "12px")
+      .attr("fill", "white")
+  </script>
+</html>
