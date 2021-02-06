@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Chargement de données GeoJSON et génération de chemins (paths) SVG</title>
+		<script type="text/javascript" src="d3.v4.min.js"></script>	
+		<script src="//d3js.org/d3-geo-projection.v1.min.js"></script>
+		<script src="https://d3js.org/colorbrewer.v1.min.js"></script>
+		<style>
+			path.countries {stroke-width: 1; stroke: black;  opacity: .5; fill: blue;}
+			circle.cities { stroke-width: 1; stroke: black; fill: white;}
+			circle.centroid { fill: red; pointer-events: none;}
+			rect.bbox { fill: none; stroke-dasharray: 5 5; stroke: black; stroke-width: 2;
+                    pointer-events: none;}
+			path.graticule { fill: none; stroke-width: 1;  stroke: black;}
+			path.graticule.outline {  stroke: black; }
+		</style>	
+	</head>
+	<body>
+		<script type="text/javascript">
+
+			//Width and height
+			var w = 1200;
+			var h = 600;
+
+			//générateur de chemins
+			
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+			var graticule = d3.geoGraticule();
+
+			d3.json("world.geojson", createMap);
+			function createMap(countries) {
+				var projection = d3.geoMollweide() 
+				  .scale(200)
+				  .translate([600, 300]);                                                  
+				var geoPath = d3.geoPath().projection(projection);
+				var featureSize = d3.extent(countries.features, d => geoPath.area(d))     
+				var countryColor = d3.scaleQuantize() 
+				.domain(featureSize).range(colorbrewer.Reds[7]);
+				d3.select("svg").selectAll("path")
+				    .data(countries.features)   
+				    .enter()   
+				    .append("path")   
+				    .attr("d", geoPath)   
+				    .attr("class", "countries")   
+				    .style("fill", d => countryColor(geoPath.area(d))) 
+				    .style("stroke", d => d3.rgb(countryColor(geoPath.area(d))).darker())
+				d3.select("svg").insert("path", "path.countries")  
+					.datum(graticule)  
+					.attr("class", "graticule line")  
+					.attr("d", geoPath)
+				d3.select("svg")
+					.insert("path", "path.countries")  
+					.datum(graticule.outline)  
+					.attr("class", "graticule outline")  
+					.attr("d", geoPath)
+			
+				d3.selectAll("path.countries")
+					.on("mouseover", centerBounds)
+    				.on("mouseout", clearCenterBounds);
+    			
+    			function centerBounds(d,i) {
+      				var thisBounds = geoPath.bounds(d);
+      				var thisCenter = geoPath.centroid(d);	
+      				d3.select("svg")
+      				.append("rect")
+        			.attr("class", "bbox")        
+        			.attr("x", thisBounds[0][0])	
+        			.attr("y", thisBounds[0][1])  
+        			.attr("width", thisBounds[1][0] - thisBounds[0][0])
+        			.attr("height", thisBounds[1][1] - thisBounds[0][1])
+          			.style("fill", "none")
+          			.style("stroke-dasharray", "5 5")          
+          			.style("stroke", "black")
+          			.style("stroke-width", 2)        
+          			.style("pointer-events", "none");
+      			
+      			d3.select("svg")        
+      				.append("circle")        
+      				.attr("class", "centroid")
+        			.style("fill", "red")        
+        			.attr("r", 5)
+        			.attr("cx", thisCenter[0])
+        			.attr("cy", thisCenter[1])	
+        			.style("pointer-events", "none");    
+        		};
+    			
+    			function clearCenterBounds() {	      
+    				d3.selectAll("circle.centroid").remove();
+      				d3.selectAll("rect.bbox").remove();    };
+
+
+				};
+
+
+		</script>
+	</body>
+</html>
