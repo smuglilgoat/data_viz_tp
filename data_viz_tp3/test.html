@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>
+    Chargement de données GeoJSON et génération de chemins (paths) SVG
+  </title>
+  <script type="text/javascript" src="d3.v3.js"></script>
+  <style>
+    path.countries {
+      stroke-width: 1;
+      stroke: black;
+      opacity: 0.5;
+      fill: blue;
+    }
+
+    circle.cities {
+      stroke-width: 1;
+      stroke: black;
+      fill: white;
+    }
+
+    circle.centroid {
+      fill: red;
+      pointer-events: none;
+    }
+
+    rect.bbox {
+      fill: none;
+      stroke-dasharray: 5 5;
+      stroke: black;
+      stroke-width: 2;
+      pointer-events: none;
+    }
+
+    path.graticule {
+      fill: none;
+      stroke-width: 1;
+      stroke: black;
+    }
+
+    path.graticule.outline {
+      stroke: black;
+    }
+  </style>
+</head>
+
+<body>
+  <script type="text/javascript">
+    //Width and height
+    var w = 900;
+    var h = 600;
+
+    //Create SVG element
+    var svg = d3
+      .select("body")
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h);
+
+    d3.json("usthbBrut.json", function (json) {
+      var center = d3.geo.centroid(json)
+      var scale = 150;
+      var offset = [w / 2, h / 2];
+      var projection = d3.geo.mercator().scale(scale).center(center)
+        .translate(offset);
+
+      var path = d3.geo.path().projection(projection);
+
+      var bounds = path.bounds(json);
+      var hscale = scale * w / (bounds[1][0] - bounds[0][0]);
+      var vscale = scale * h / (bounds[1][1] - bounds[0][1]);
+      var scale = (hscale < vscale) ? hscale : vscale;
+      var offset = [w - (bounds[0][0] + bounds[1][0]) / 2,
+      h - (bounds[0][1] + bounds[1][1]) / 2];
+
+      projection = d3.geo.mercator().center(center)
+        .scale(scale).translate(offset);
+      path = path.projection(projection);
+
+      var bounds = path.bounds(json);
+      offset[0] = offset[0] + (w - bounds[1][0] - bounds[0][0]) / 2;
+      offset[1] = offset[1] + (h - bounds[1][1] - bounds[0][1]) / 2;
+
+      projection = d3.geo.mercator().center(center)
+        .scale(scale).translate(offset);
+      path = path.projection(projection);
+
+      svg.selectAll("path").data(json.features).enter().append("path")
+        .attr("d", path)
+        .style("fill", "white")
+        .style("stroke-width", "1")
+        .style("stroke", "black")
+    })
+  </script>
+</body>
+
+</html>

@@ -30,7 +30,7 @@
       .attr("height", h);
 
     d3.json("usthbBrut.json", (x) => {
-      var bounds = path.bounds(x.features[1]);
+      var bounds = path.bounds(x);
       var hscale = (scale * w) / (bounds[1][0] - bounds[0][0]);
       var vscale = (scale * h) / (0.002 + bounds[1][1] - bounds[0][1]);
       var scale = hscale < vscale ? hscale : vscale;
