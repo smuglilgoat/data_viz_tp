@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet and D3 Map</title>
+    <meta charset="utf-8" />
+         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+</head>
+<body>
+
+    <div id="mapid" style="width: 900px; height: 600px"></div>
+
+	<script src="d3.v3.min.js"></script>
+
+    <script
+         <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    </script>
+
+    <script>
+	
+        //var mymap = L.map('mapid').setView([36.59412, 2.44322], 16);
+  var mymap = L.map('mapid', { center: [36.59412, 2.44322], zoom: 16});
+        
+    
+		
+	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+   
+  
+	var marker = L.marker([36.59412, 2.44322]).addTo(mymap);  //// LATITUDE, LONGITUDE
+
+var circle = L.circle([36.59412, 2.44322], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(mymap);
+
+
+		 
+		 var popup = L.popup();
+
+        function onMapClick(e) {
+        popup
+            .setLatLng(e.latlng)
+            .setContent("Coordonnées long,lat : " + e.latlng.toString())
+            .openOn(mymap);
+          }
+
+          mymap.on('click', onMapClick);
+
+    </script>
+</body>
+</html>

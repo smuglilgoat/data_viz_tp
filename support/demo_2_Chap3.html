@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet and D3 Map</title>
+    <meta charset="utf-8" />
+    <link 
+         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+
+</head>
+<body>
+
+    <div id="mapid" style="width: 900px; height: 600px"></div>
+
+	<script src="d3.v3.min.js"></script>
+
+    <script
+         <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+    </script>
+
+    <script>
+	
+        var mymap = L.map('mapid').setView([36.7167, 3.1833], 18); // LATITUDE, LONGITUDE
+		
+	L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mymap);
+   
+  
+   var greenIcon = L.icon({
+    iconUrl: 'leaf-green.png',
+    shadowUrl: 'leaf-shadow.png',
+
+    iconSize:     [38, 95], // size of the icon
+    shadowSize:   [50, 64], // size of the shadow
+    iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 62],  // the same for the shadow
+    popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+    });
+
+	//var marker = L.marker([36.7167, 3.1830]).addTo(mymap);
+	var marker;
+	marker=L.marker([36.7167, 3.1830], {icon: greenIcon}).addTo(mymap);
+
+
+	var circle = L.circle([36.7167, 3.1836], {
+    color: 'red',
+    fillColor: '#f03',
+    fillOpacity: 0.5,
+    radius: 10
+}).addTo(mymap);
+
+
+
+var polygon = L.polygon([
+    [36.7168, 3.18428],
+    [36.7169, 3.1833],
+    [36.7169, 3.1843]
+]).addTo(mymap);
+
+    marker.bindPopup("<b>Vers la FEI</b><br>Bonne route.").openPopup();
+    circle.bindPopup("I am a circle.");
+    polygon.bindPopup("I am a polygon.");
+
+		//function onMapClick(e) {
+        //alert("You clicked the map at " + e.latlng);
+         //}
+         //mymap.on('click', onMapClick);
+		 
+		 var popup = L.popup();
+
+        function onMapClick(e) {
+        popup
+            .setLatLng(e.latlng)
+            .setContent("You clicked the map at " + e.latlng.toString())
+            .openOn(mymap);
+          }
+
+          mymap.on('click', onMapClick);
+
+    </script>
+</body>
+</html>

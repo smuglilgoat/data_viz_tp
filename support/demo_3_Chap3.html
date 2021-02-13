@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Leaflet Map</title>
+    <meta charset="utf-8" />
+    <link 
+        rel="stylesheet" 
+        href="leaflet.css"
+    />
+</head>
+<body>
+    <div id="map" style="width: 600px; height: 400px"></div>
+
+    <script
+        src="leaflet.js">
+    </script>
+
+    <script>
+        var map = L.map('map').setView([36.7168, 3.18428], 18); //// LATITUDE, LONGITUDE
+        mapLink = 
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+        L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+            }).addTo(map);
+        
+        var polyline = L.polyline([
+            [36.7168, 3.18428],
+            [36.7164, 3.18438],
+            [36.7160, 3.18448],
+            [36.7168, 3.18458],
+            [36.7168, 3.18468]
+            ],
+            {
+                color: 'red',
+                weight: 10,
+                opacity: .7,
+                dashArray: '20,15',
+                lineJoin: 'round'
+            }
+            ).addTo(map);
+        
+    </script>
+</body>
+</html>
