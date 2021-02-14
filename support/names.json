@@ -1,30 +1,4 @@
-<html>
-  <head>
-    <style>
-      h1 {
-        font-family: arial;
-        font-size: 2em;
-        color: #333;
-      }
-      #info {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-      }
-      .states {
-        stroke: #000;
-        stroke-width: 2px;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="info"><h1 id="name"></h1></div>
-
-    <script src="d3.v3.js" charset="utf-8"></script>
-    <script src="topojson.v1.min.js"></script>
-
-    <script>
-      var names = [
+[
     {
         "id": -1,
         "name": "Northern Cyprus"
@@ -1052,42 +1026,3 @@
         "id": null
     }
 ]
-      var width = 1200,
-        height = 700;
-      var colors = ['gray', 'maroon', 'purple', 'navy', 'deepskyblue']
-      var svg = d3
-        .select("body")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-      var projection = d3.geo
-        .mercator()
-        .center([3.0, 30.279229]) // On centre la carte sur la France
-        .scale(1500)
-        //.scale(150)
-        .translate([width / 2, height / 2]);
-      var path = d3.geo.path().projection(projection);
-
-      d3.json("world-110m.json", function (err, X) {
-        svg
-          .selectAll("path")
-          .data(topojson.feature(X, X.objects.countries).features)
-          .enter()
-          .append("path")
-          .attr("class", "states")
-          .attr("fill", colors[Math.floor(Math.random() * colors.length)])
-          .attr("d", path)
-          .on("mouseover", function (d) {
-            console.log(d.id);
-            var name = names.find(obj => {
-              return obj.id === d.id
-            });
-            console.log(name)
-            return (document.getElementById("name").innerHTML = name.name);
-          });
-      });
-    </script>
-  </body>
-</html>
-
