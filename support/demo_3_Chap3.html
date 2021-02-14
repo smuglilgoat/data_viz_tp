@@ -6,14 +6,14 @@
     <meta charset="utf-8" />
     <link 
         rel="stylesheet" 
-        href="leaflet.css"
+        href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css"
     />
 </head>
 <body>
     <div id="map" style="width: 600px; height: 400px"></div>
 
     <script
-        src="leaflet.js">
+        src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js">
     </script>
 
     <script>
@@ -27,16 +27,21 @@
             }).addTo(map);
         
         var polyline = L.polyline([
-            [36.7168, 3.18428],
-            [36.7164, 3.18438],
-            [36.7160, 3.18448],
-            [36.7168, 3.18458],
-            [36.7168, 3.18468]
+            [36.71576, 3.18498],
+            [36.71565, 3.18461],
+            [36.71497, 3.18517],
+            [36.71184, 3.18517],
+            [36.7109, 3.18302],
+            [36.71098, 3.18266],
+            [36.711, 3.1821],
+            [36.71058, 3.18133],
+            [36.71183, 3.18031],
+            [36.71141, 3.17958]
             ],
             {
                 color: 'red',
-                weight: 10,
-                opacity: .7,
+                weight: 5,
+                opacity: .5,
                 dashArray: '20,15',
                 lineJoin: 'round'
             }
