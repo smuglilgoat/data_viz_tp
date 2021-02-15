@@ -44,12 +44,7 @@
         .attr("d", path)
         .style("fill", function (d, i) {
           return color(
-            (d.color =
-              (d3.max(neighbors[i], function (n) {
-                return countries[n].color;
-              }) +
-                1) |
-              0)
+            (d.color = (d3.max(neighbors[i], function (n) { return countries[n].color; }) + 1) | 0)
           );
         });
     });
