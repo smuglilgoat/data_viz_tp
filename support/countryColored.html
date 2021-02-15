@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <head>
   <meta charset="utf-8" />
 </head>
@@ -9,20 +10,8 @@
     stroke-width: 0.5px;
     stroke-linejoin: round;
   }
-
-  .graticule {
-    fill: none;
-    stroke: #000;
-    stroke-opacity: 0.3;
-    stroke-width: 0.5px;
-  }
-
-  .graticule.outline {
-    stroke: #333;
-    stroke-opacity: 1;
-    stroke-width: 1.5px;
-  }
 </style>
+
 <body>
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script src="https://d3js.org/d3.geo.projection.v0.min.js"></script>
@@ -32,7 +21,7 @@
       height = 600;
 
     var projection = d3.geo.mercator(),
-      color = d3.scale.category20();
+      color = d3.scale.category10();
 
     var path = d3.geo.path().projection(projection);
 
