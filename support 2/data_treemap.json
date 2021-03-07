@@ -1,0 +1,77 @@
+{
+"name":"diet",
+"children":
+	[
+		{
+		"name":"A?",
+		"children":
+			[
+				{
+				 "name": "personA",
+				 "children":
+					[
+						{ 
+						"name": "personA1",
+						"ground":"100",
+						"building":"200",
+						"cash":"300",
+						"total":"600"
+						},
+						{ 
+						"name": "personA2",
+						"children":
+							[
+								{ 
+								"name": "personA21",
+								"children":
+									[
+										{"name": "pesonA21_1","ground":"150","building":"200","cash":"350","total":"260"}, 
+										{"name": "pesonA21_2","ground":"150","building":"200","cash":"350","total":"60"},
+										{"name": "pesonA21_3","ground":"150","building":"200","cash":"350","total":"60"},
+										{"name": "pesonA21_1","ground":"150","building":"200","cash":"350","total":"60"}, 
+										{"name": "pesonA21_2","ground":"150","building":"200","cash":"350","total":"60"},
+										{"name": "pesonA21_3","ground":"150","building":"200","cash":"350","total":"60"}
+									]
+								},
+								{ 
+								"name": "personA22",
+								"ground":"150",
+								"building":"200",
+								"cash":"350",
+								"total":"600"
+								}
+							]
+						}
+					]
+				},
+				{
+				 "name": "personB",
+				 "ground":"10",
+				 "building":"20",
+				 "cash":"300",
+				 "total":"330"
+				}
+			]
+		},
+		{
+		"name":"B?",
+		"children":
+			[
+				{
+				 "name": "personC",
+				 "ground":"200",
+				 "building":"10",
+				 "cash":"100",
+				 "total":"310"
+				},
+				{
+				 "name": "personD",
+				 "ground":"450",
+				 "building":"30",
+				 "cash":"100",
+				 "total":"290"
+				}
+			]
+		}
+	]
+}

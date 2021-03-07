@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="d3.v3.min.js"></script>
+    <style type="text/css">
+
+.chart {
+  display: block;
+  margin: auto;
+  margin-top: 40px;
+}
+
+text {
+  font-size: 11px;
+}
+
+rect {
+  fill: none;
+}
+
+    </style>
+  </head>
+  <body>
+    <div id="body">  </div>
+    <script type="text/javascript">
+
+var w = 1280 - 80,
+    h = 800 - 180,
+    x = d3.scale.linear().range([0, w]),
+    y = d3.scale.linear().range([0, h]),
+    color = d3.scale.category20c(),
+    root,
+    node;
+
+var treemap = d3.layout.treemap()
+    .size([w, h])
+   //.mode("slice") 
+    //.mode("dice")
+    .mode("slice-dice")	
+	//.mode("squarify")      
+    .value(function(d) { return d.total; });
+	  
+	
+var svg = d3.select("#body").append("div")
+    .attr("class", "chart")
+    .style("width", w + "px")
+    .style("height", h + "px")
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .append("g");
+
+d3.json("data_treemap.json", function(data) {
+  node = root = data;
+  var nodes = treemap.nodes(root)
+      .filter(function(d) {
+	          
+					  return !d.children; }); // on retourne les noeuds feuilles
+					  //return (d.depth==2); }); // on retourne les noeuds feuilles
+	  //console.log("node=",nodes);
+
+
+  var cell = svg.selectAll("g")
+      .data(nodes)
+      .enter().append("g")
+      .attr("class", "cell")
+      .attr("transform", function(d) { console.log(d); return "translate(" + d.x + "," + d.y + ")"; });
+							   //return zoom(node == d.parent ? root : d.parent); });
+
+  cell.append("rect")
+      .attr("width", function(d) { return d.dx - 1; })
+      .attr("height", function(d) { return d.dy - 1; })
+      .style("fill", function(d) {return color(d.parent.name); });
+
+  cell.append("text")
+      .attr("x", function(d) { return d.dx / 2; })
+      .attr("y", function(d) { return d.dy / 2; })
+      .attr("dy", ".35em")
+      .attr("text-anchor", "middle")
+      .text(function(d) { return d.name; });
+
+  //d3.select(window).on("click", function() { zoom(root); });
+
+  
+});
+
+
+    </script>
+  </body>
+</html>
