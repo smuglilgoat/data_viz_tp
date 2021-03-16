@@ -33,56 +33,63 @@
           return d.name;
         });
 
-        var minimiseTab = new Map()
-        var newMinimiseTab = new Map()
-        var rank = -1
-        data.nodes.forEach(element => {
-          minimiseTab.set(element.id, rank + 1)
-          rank++
+        var minimiseTab = new Map();
+        var newMinimiseTab = new Map();
+        var rank = -1;
+        data.nodes.forEach((element) => {
+          minimiseTab.set(element.id, rank + 1);
+          rank++;
         });
-        console.log(minimiseTab)
-        var nb = 0
-        var sum = 0
-        for (let [key, value] of minimiseTab) {
-          console.log("Calculating Node", key, "Value", value)
-          nb = 1
-          sum = value
-          data.links.forEach(link => {
-            if (link.source == key) {
-              sum += minimiseTab.get(link.target)
-              nb++
-              console.log("Found link", link.source, "=>", link.target)
-              console.log("Sum", sum, "Nb", nb)
-            }
-            if (link.target == key) {
-              sum += minimiseTab.get(link.source)
-              nb++
-              console.log("Found link", link.source, "=>", link.target)
-              console.log("Sum", sum, "Nb", nb)
-            }
-          });
-          newMinimiseTab.set(key, sum / nb)
-        };
-        console.log(newMinimiseTab)
-        
+        console.log(minimiseTab);
+        var nb = 0;
+        var sum = 0;
+        for (let index = 0; index < 100; index++) {
+          for (let [key, value] of minimiseTab) {
+            console.log("Calculating Node", key, "Value", value);
+            nb = 1;
+            sum = value;
+            data.links.forEach((link) => {
+              if (link.source == key) {
+                sum += minimiseTab.get(link.target);
+                nb++;
+                console.log("Found link", link.source, "=>", link.target);
+                console.log("Sum", sum, "Nb", nb);
+              }
+              if (link.target == key) {
+                sum += minimiseTab.get(link.source);
+                nb++;
+                console.log("Found link", link.source, "=>", link.target);
+                console.log("Sum", sum, "Nb", nb);
+              }
+            });
+            newMinimiseTab.set(key, sum / nb);
+          }
+          console.log(newMinimiseTab);
+          newMinimiseTab = new Map(
+            [...newMinimiseTab.entries()].sort((a, b) => (a[1] > b[1] ? 1 : -1))
+          );
+          console.log(newMinimiseTab);
+          minimiseTab = newMinimiseTab;
+          var rank = -1;
+          for (let [key, value] of minimiseTab) {
+            minimiseTab.set(key, rank + 1);
+            rank++;
+          }
+          newMinimiseTab = new Map();
+          console.log(newMinimiseTab);
+          console.log(minimiseTab);
+        }
 
-        console.log(allNodes.sort())
-        var rank = -1
-        data.nodes.forEach(element => {
-          element.rank = rank + 1
-          rank++
+        data.nodes.forEach((element) => {
+          element.rank = minimiseTab.get(element.id);
         });
         var allRanks = data.nodes.map(function (d) {
           return d.rank;
         });
-        console.log(allRanks)
-
+        console.log(allRanks);
 
         // A linear scale to position the nodes on the X axis
-        var x = d3.scalePoint().range([0, width]).domain(allNodes);
-        console.log(x("Z"))
-        console.log(x("J"))
-
+        var x = d3.scalePoint().range([0, width]).domain(allRanks.sort());
 
         // Add the circle for the nodes
         var nodes = svg
@@ -91,7 +98,7 @@
           .enter()
           .append("circle")
           .attr("cx", function (d) {
-            return x(d.name);
+            return x(d.rank);
           })
           .attr("cy", height - 30)
           .attr("r", 8)
@@ -104,7 +111,7 @@
           .enter()
           .append("text")
           .attr("x", function (d) {
-            return x(d.name);
+            return x(d.rank);
           })
           .attr("y", height - 10)
           .text(function (d) {
@@ -128,8 +135,8 @@
           .enter()
           .append("path")
           .attr("d", function (d) {
-            start = x(idToNode[d.source].name); // X position of start node on the X axis
-            end = x(idToNode[d.target].name); // X position of end node
+            start = x(idToNode[d.source].rank); // X position of start node on the X axis
+            end = x(idToNode[d.target].rank); // X position of end node
             return [
               "M",
               start,
