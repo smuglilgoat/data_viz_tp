@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TP Arc/Graphe</title>
+    <!-- Load d3.js -->
+    <script src="https://d3js.org/d3.v4.js"></script>
+  </head>
+
+  <body>
+    <!-- Create a div where the graph will take place -->
+    <div id="arcDiagram"></div>
+    <script>
+      // set the dimensions and margins of the graph
+      var width = 500,
+        height = 200;
+
+      // append the svg object to the body of the page
+      var svg = d3
+        .select("#arcDiagram")
+        .append("svg")
+        .attr("width", width + 40)
+        .attr("height", height + 50)
+        .append("g")
+        .attr("transform", "translate(" + 30 + "," + 50 + ")");
+
+      // Read dummy data
+      d3.json("data_network.json", function (data) {
+        // List of node names
+        var allNodes = data.nodes.map(function (d) {
+          return d.name;
+        });
+
+        var minimiseTab = new Map()
+        var newMinimiseTab = new Map()
+        var rank = -1
+        data.nodes.forEach(element => {
+          minimiseTab.set(element.id, rank + 1)
+          rank++
+        });
+        console.log(minimiseTab)
+        var nb = 0
+        var sum = 0
+        for (let [key, value] of minimiseTab) {
+          console.log("Calculating Node", key, "Value", value)
+          nb = 1
+          sum = value
+          data.links.forEach(link => {
+            if (link.source == key) {
+              sum += minimiseTab.get(link.target)
+              nb++
+              console.log("Found link", link.source, "=>", link.target)
+              console.log("Sum", sum, "Nb", nb)
+            }
+            if (link.target == key) {
+              sum += minimiseTab.get(link.source)
+              nb++
+              console.log("Found link", link.source, "=>", link.target)
+              console.log("Sum", sum, "Nb", nb)
+            }
+          });
+          newMinimiseTab.set(key, sum / nb)
+        };
+        console.log(newMinimiseTab)
+        
+
+        console.log(allNodes.sort())
+        var rank = -1
+        data.nodes.forEach(element => {
+          element.rank = rank + 1
+          rank++
+        });
+        var allRanks = data.nodes.map(function (d) {
+          return d.rank;
+        });
+        console.log(allRanks)
+
+
+        // A linear scale to position the nodes on the X axis
+        var x = d3.scalePoint().range([0, width]).domain(allNodes);
+        console.log(x("Z"))
+        console.log(x("J"))
+
+
+        // Add the circle for the nodes
+        var nodes = svg
+          .selectAll("mynodes")
+          .data(data.nodes)
+          .enter()
+          .append("circle")
+          .attr("cx", function (d) {
+            return x(d.name);
+          })
+          .attr("cy", height - 30)
+          .attr("r", 8)
+          .style("fill", "#69b3a2");
+
+        // And give them a label
+        var labels = svg
+          .selectAll("mylabels")
+          .data(data.nodes)
+          .enter()
+          .append("text")
+          .attr("x", function (d) {
+            return x(d.name);
+          })
+          .attr("y", height - 10)
+          .text(function (d) {
+            return d.name;
+          })
+          .style("text-anchor", "middle");
+
+        // Add links between nodes. Here is the tricky part.
+        // In my input data, links are provided between nodes -id-, NOT between node names.
+        // So I have to do a link between this id and the name
+        var idToNode = {};
+        data.nodes.forEach(function (n) {
+          idToNode[n.id] = n;
+        });
+        // Cool, now if I do idToNode["2"].name I've got the name of the node with id 2
+
+        // Add the links
+        var links = svg
+          .selectAll("mylinks")
+          .data(data.links)
+          .enter()
+          .append("path")
+          .attr("d", function (d) {
+            start = x(idToNode[d.source].name); // X position of start node on the X axis
+            end = x(idToNode[d.target].name); // X position of end node
+            return [
+              "M",
+              start,
+              height - 30, // the arc starts at the coordinate x=start, y=height-30 (where the starting node is)
+              "A", // This means we're gonna build an elliptical arc
+              (start - end) / 2,
+              ",", // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
+              (start - end) / 2,
+              0,
+              0,
+              ",",
+              start < end ? 1 : 0,
+              end,
+              ",",
+              height - 30,
+            ] // We always want the arc on top. So if end is before start, putting 0 here turn the arc upside down.
+              .join(" ");
+          })
+          .style("fill", "none")
+          .attr("stroke", "gray");
+
+        // Add the highlighting functionality
+        nodes
+          .on("mouseover", function (d) {
+            // Highlight the nodes: every node is green except of him
+            nodes.style("fill", "#B8B8B8");
+            d3.select(this).style("fill", "#69b3b2");
+            // Highlight the connections
+            links
+              .style("stroke", function (link_d) {
+                return link_d.source === d.id || link_d.target === d.id
+                  ? "#69b3b2"
+                  : "#b8b8b8";
+              })
+              .style("stroke-width", function (link_d) {
+                return link_d.source === d.id || link_d.target === d.id ? 4 : 1;
+              });
+          })
+          .on("mouseout", function (d) {
+            nodes.style("fill", "#69b3a2");
+            links.style("stroke", "black").style("stroke-width", "1");
+          });
+      });
+    </script>
+  </body>
+</html>

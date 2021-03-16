@@ -1,235 +1,354 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TP Arc/Graphe</title>
-    <!-- Load d3.js -->
-    <script src="https://d3js.org/d3.v4.js"></script>
-
-    <style>
-      .container {
-        display: flex;
-        flex-wrap: wrap;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-        align-content: center;
-      }
-
-      .item {
-        flex: 1 1 auto;
-        margin: 10px;
-      }
-    </style>
-  </head>
-
-  <body>
-    <!-- Create a div where the graph will take place -->
-    <div class="container">
-      <div id="arcDiagram" class="item"></div>
-      <div id="grapheNetwork" class="item"></div>
-    </div>
-    <script>
-      // set the dimensions and margins of the graph
-      var margin = { top: 20, right: 30, bottom: 20, left: 30 },
-        width = 400 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
-
-      // append the svg object to the body of the page
-      var svg = d3
-        .select("#arcDiagram")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      // Read dummy data
-      d3.json("data_network.json", function (data) {
-        // List of node names
-        var allNodes = data.nodes.map(function (d) {
-          return d.name;
-        });
-
-        // A linear scale to position the nodes on the X axis
-        var x = d3.scalePoint().range([0, width]).domain(allNodes);
-
-        // Add the circle for the nodes
-        var nodes = svg
-          .selectAll("mynodes")
-          .data(data.nodes)
-          .enter()
-          .append("circle")
-          .attr("cx", function (d) {
-            return x(d.name);
-          })
-          .attr("cy", height - 30)
-          .attr("r", 8)
-          .style("fill", "#69b3a2");
-
-        // And give them a label
-        var labels = svg
-          .selectAll("mylabels")
-          .data(data.nodes)
-          .enter()
-          .append("text")
-          .attr("x", function (d) {
-            return x(d.name);
-          })
-          .attr("y", height - 10)
-          .text(function (d) {
-            return d.name;
-          })
-          .style("text-anchor", "middle");
-
-        // Add links between nodes. Here is the tricky part.
-        // In my input data, links are provided between nodes -id-, NOT between node names.
-        // So I have to do a link between this id and the name
-        var idToNode = {};
-        data.nodes.forEach(function (n) {
-          idToNode[n.id] = n;
-        });
-        // Cool, now if I do idToNode["2"].name I've got the name of the node with id 2
-
-        // Add the links
-        var links = svg
-          .selectAll("mylinks")
-          .data(data.links)
-          .enter()
-          .append("path")
-          .attr("d", function (d) {
-            start = x(idToNode[d.source].name); // X position of start node on the X axis
-            end = x(idToNode[d.target].name); // X position of end node
-            return [
-              "M",
-              start,
-              height - 30, // the arc starts at the coordinate x=start, y=height-30 (where the starting node is)
-              "A", // This means we're gonna build an elliptical arc
-              (start - end) / 2,
-              ",", // Next 2 lines are the coordinates of the inflexion point. Height of this point is proportional with start - end distance
-              (start - end) / 2,
-              0,
-              0,
-              ",",
-              start < end ? 1 : 0,
-              end,
-              ",",
-              height - 30,
-            ] // We always want the arc on top. So if end is before start, putting 0 here turn the arc upside down.
-              .join(" ");
-          })
-          .style("fill", "none")
-          .attr("stroke", "black");
-
-        // Add the highlighting functionality
-        nodes
-          .on("mouseover", function (d) {
-            // Highlight the nodes: every node is green except of him
-            nodes.style("fill", "#B8B8B8");
-            d3.select(this).style("fill", "#69b3b2");
-            // Highlight the connections
-            links
-              .style("stroke", function (link_d) {
-                return link_d.source === d.id || link_d.target === d.id
-                  ? "#69b3b2"
-                  : "#b8b8b8";
-              })
-              .style("stroke-width", function (link_d) {
-                return link_d.source === d.id || link_d.target === d.id ? 4 : 1;
-              });
-          })
-          .on("mouseout", function (d) {
-            nodes.style("fill", "#69b3a2");
-            links.style("stroke", "black").style("stroke-width", "1");
-          });
-      });
-
-      // text hover nodes
-      svg
-        .append("text")
-        .attr("text-anchor", "middle")
-        .style("fill", "#B8B8B8")
-        .style("font-size", "17px")
-        .attr("x", 50)
-        .attr("y", 10)
-        .html("Hover nodes");
-
-      // append the svg object to the body of the page
-      var svg = d3
-        .select("#grapheNetwork")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      d3.json("data_network.json", function (data) {
-        // Initialize the links
-        var link = svg
-          .selectAll("line")
-          .data(data.links)
-          .enter()
-          .append("line")
-          .style("stroke", "#aaa");
-
-        // Initialize the nodes
-        var node = svg
-          .selectAll("circle")
-          .data(data.nodes)
-          .enter()
-          .append("circle")
-          .attr("r", 20)
-          .style("fill", "#69b3a2");
-
-        // Let's list the force we wanna apply on the network
-        var simulation = d3
-          .forceSimulation(data.nodes) // Force algorithm is applied to data.nodes
-          .force(
-            "link",
-            d3
-              .forceLink() // This force provides links between nodes
-              .id(function (d) {
-                return d.id;
-              }) // This provide  the id of a node
-              .links(data.links) // and this the list of links
-          )
-          .force("charge", d3.forceManyBody().strength(-400)) // This adds repulsion between nodes. Play with the -400 for the repulsion strength
-          .force("center", d3.forceCenter(width / 2, height / 2)) // This force attracts nodes to the center of the svg area
-          .on("end", ticked);
-
-        // This function is run at each iteration of the force algorithm, updating the nodes position.
-        function ticked() {
-          link
-            .attr("x1", function (d) {
-              return d.source.x;
-            })
-            .attr("y1", function (d) {
-              return d.source.y;
-            })
-            .attr("x2", function (d) {
-              return d.target.x;
-            })
-            .attr("y2", function (d) {
-              return d.target.y;
-            });
-
-          node
-            .attr("cx", function (d) {
-              return d.x + 6;
-            })
-            .attr("cy", function (d) {
-              return d.y - 6;
-            });
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style type="text/css">
+        *{
+            font-family: sans-serif;
+            font-size: 25px;
         }
-      });
-    </script>
-    <script>
-      // set the dimensions and margins of the graph
-      var margin = { top: 10, right: 30, bottom: 30, left: 40 },
-        width = 400 - margin.left - margin.right,
-        height = 400 - margin.top - margin.bottom;
-    </script>
-  </body>
+        canvas{
+            border: 3px solid black;
+        }
+        button{
+            background-color: white;
+            border: 3px solid black;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<canvas id="graph"></canvas>
+<canvas id="diag"></canvas>
+<br>
+<button id="minimize_button">Minimize diagram</button>
+<script type="text/javascript">
+var canvas_graph = document.getElementById("graph");
+var ctx_graph = canvas_graph.getContext("2d");
+canvas_graph.width = 400;
+canvas_graph.height = 400;
+var center = [canvas_graph.width/2, canvas_graph.height/2];
+
+var canvas_diag = document.getElementById("diag");
+var ctx_diag = canvas_diag.getContext("2d");
+canvas_diag.width = 600;
+canvas_diag.height = 400;
+
+ctx_graph.textBaseline = "middle";
+ctx_graph.textAlign = "center";
+ctx_graph.font = "18px sans-serif";
+ctx_graph.lineWidth = 2;
+
+var fill_color = "#ff0000";
+var stroke_color = "#000000";
+
+ctx_diag.lineWidth = 3;
+ctx_diag.textBaseline = "middle";
+ctx_diag.textAlign = "center";
+ctx_diag.font = "20px sans-serif";
+
+var dela_time_multiplier = 0.1;
+var max_velocity = 100;
+var gravity_const = 1;
+var repulsion_const = -3000;
+var min_dist = 50;
+var attraction_const = 1;
+
+var vertex_radius = 15;
+var connectedness = 90;
+var at_least_one_neighbor = true;
+var vertex_count = 10;
+
+var adjacency_matrix;
+var vertex_pos;
+var vertex_velocity;
+
+var last_time = Date.now();
+init_vertices();
+window.requestAnimationFrame(update);
+
+var vertices = [];
+var neighbors = [];
+
+init_diagram();
+draw_diagram();
+
+function init_vertices(){
+    adjacency_matrix = [];
+    vertex_pos = [];
+    vertex_velocity = [];
+    for(var i = 0; i < vertex_count; i++){
+        vertex_pos.push([rand(0, canvas_graph.width), rand(0, canvas_graph.height)]);
+        vertex_velocity.push([0, 0]);
+    }
+
+    for(var i = 0; i < vertex_count; i++){
+        adjacency_matrix[i] = [];
+        for(var j = 0; j < vertex_count; j++){
+            adjacency_matrix[i][j] = 0;
+        }
+    }
+
+    for(var i = 0; i < vertex_count; i++){
+        for(var j = 0; j < i; j++){
+            if(i == j){
+                adjacency_matrix[i][j] = 0;
+                continue;
+            }
+            var neighbors = rand(0, 100);
+            neighbors = neighbors > connectedness ? 1 : 0;
+            adjacency_matrix[i][j] = neighbors;
+            adjacency_matrix[j][i] = neighbors;
+        }
+    }
+
+    if(at_least_one_neighbor){
+        for(var i = 0; i < vertex_count; i++){
+            var found_neighbor = false;
+            for(var j = 0; j < i; j++){
+                if(adjacency_matrix[i][j] || adjacency_matrix[j][i]){
+                    found_neighbor = true;
+                    break;
+                }
+            }
+            if(vertex_count == 1) break;
+            if(!found_neighbor){
+                var neighbor_index = rand(0, vertex_count-1);
+                while(neighbor_index == i){
+                    neighbor_index = rand(0, vertex_count-1);
+                }
+                adjacency_matrix[i][neighbor_index] = 1;
+                adjacency_matrix[neighbor_index][i] = 1;
+            }
+        }
+    }
+}
+
+function update(){
+    var current_time = Date.now();
+    var delta_time = (current_time-last_time);
+    last_time = current_time;
+    update_graph(delta_time/1000);
+    draw_graph();
+
+    window.requestAnimationFrame(update);
+}
+
+
+function update_graph(delta_time){
+    for(var i = 0; i < vertex_count; i++){
+        vertex_velocity[i] = [0, 0];
+
+        var direction = sub(center, vertex_pos[i]);
+        dist = mag(direction);
+        direction = norm(direction);
+        var force = scale(direction, gravity_const*dist);
+        vertex_velocity[i] = add(vertex_velocity[i], force);
+
+        for(var j = 0; j < vertex_count; j++){
+            if(i == j) continue;
+            var direction = sub(vertex_pos[j], vertex_pos[i]);
+            var dist = mag(direction);
+            dist = dist == 0 ? 0.1 : dist;
+            var force = scale(direction, repulsion_const/(Math.pow(dist, 2)));
+            vertex_velocity[i] = add(vertex_velocity[i], force);
+
+            if(adjacency_matrix[i][j]){
+                 vertex_velocity[i] = add(vertex_velocity[i],
+                        scale(direction, attraction_const*Math.log(dist/min_dist)));
+            }
+        }
+    }
+
+    for(var i = 0; i < vertex_count; i++){
+        vertex_velocity[i] = clamp(vertex_velocity[i], max_velocity);
+        vertex_pos[i] = add(vertex_pos[i], scale(vertex_velocity[i], 1*dela_time_multiplier));
+        if(vertex_pos[i][0] < 0) vertex_pos[i][0] = 0;
+        if(vertex_pos[i][0] >= canvas_graph.width) vertex_pos[i][0] = canvas_graph.width-1;
+        if(vertex_pos[i][1] < 0) vertex_pos[i][1] = 0;
+        if(vertex_pos[i][1] >= canvas_graph.height) vertex_pos[i][1] = canvas_graph.height-1;
+    }
+}
+
+function init_diagram(){
+    for(var i = 0; i < vertex_count; i++){
+        var this_neighbors = [];
+        for(var j = 0; j < vertex_count; j++){
+            if(adjacency_matrix[i][j]){
+                this_neighbors.push(j);
+            }
+        }
+        vertices.push(i);
+        neighbors.push(this_neighbors);
+    }
+}
+
+function minimize_diagram(){
+    var old = JSON.stringify(vertices);
+    var ranks = [];
+    for(var i = 0; i < vertices.length; i++){
+        var rank = i;
+        for(var j = 0; j < neighbors[i].length; j++){
+            rank += vertices.indexOf(neighbors[i][j]);
+        }
+        rank /= neighbors[i].length+1;
+        ranks.push(rank);
+    }
+
+    vertices.sort(function(a, b){
+        a_ = ranks[vertices.indexOf(a)];
+        b_ = ranks[vertices.indexOf(b)];
+        return a_-b_;
+    });
+
+    neighbors.sort(function(a, b){
+        a_ = ranks[neighbors.indexOf(a)];
+        b_ = ranks[neighbors.indexOf(b)];
+        return a_-b_;
+    });
+
+    if(JSON.stringify(vertices) == old){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+document.getElementById("minimize_button").onclick = function(){
+    while(!minimize_diagram()){
+    }
+    draw_diagram();
+};
+
+function draw_diagram(iterations){
+    ctx_diag.clearRect(0, 0, canvas_diag.width, canvas_diag.height);
+
+    var padding = 50;
+    var height = 5;
+    var position_bottom = 100;
+
+    ctx_diag.beginPath();
+    ctx_diag.moveTo(0, canvas_diag.height-position_bottom);
+    ctx_diag.lineTo(canvas_diag.width, canvas_diag.height-position_bottom);
+    ctx_diag.stroke();
+
+    var space_each = (canvas_diag.width-padding*2)/(vertex_count-1);
+
+    for(var i = 0; i < vertices.length; i++){
+        ctx_diag.strokeStyle = fill_color;
+        ctx_diag.fillText("v"+to_subscript(vertices[i]+1), padding+i*space_each, canvas_diag.height-position_bottom+20);
+
+        ctx_diag.strokeStyle = stroke_color;
+
+        ctx_diag.lineWidth = 2;
+        for(var j = 0; j < neighbors[i].length; j++){
+            var j_pos = vertices.indexOf(neighbors[i][j]);
+            var arc_center = (i-j_pos)/2;
+            var radius = Math.abs(i-j_pos)/2;
+            if(arc_center < 0){
+                arc_center = Math.abs(arc_center)+i;
+            }
+            else{
+                arc_center = Math.abs(arc_center)+j_pos;
+            }
+
+            ctx_diag.beginPath();
+            ctx_diag.arc(padding+arc_center*space_each,
+                    canvas_diag.height-position_bottom,
+                    radius*space_each, 0, Math.PI, true);
+            ctx_diag.stroke();
+        }
+        ctx_diag.lineWidth = 3;
+
+        ctx_diag.strokeStyle = fill_color;
+        ctx_diag.beginPath();
+        ctx_diag.moveTo(padding+i*space_each, canvas_diag.height-position_bottom-height);
+        ctx_diag.lineTo(padding+i*space_each, canvas_diag.height-position_bottom+height);
+        ctx_diag.stroke();
+        ctx_diag.strokeStyle = stroke_color;
+    }
+}
+
+function draw_graph(){
+    ctx_graph.clearRect(0, 0, canvas_graph.width, canvas_graph.height);
+    ctx_graph.fillStyle = fill_color;
+    ctx_graph.strokeStyle = stroke_color;
+
+    for(var i = 0; i < vertex_count; i++){
+        for(var j = 0; j < i; j++){
+            if(adjacency_matrix[i][j] == 0){
+                continue;
+            }
+
+            ctx_graph.beginPath();
+            ctx_graph.moveTo(vertex_pos[i][0], vertex_pos[i][1]);
+            ctx_graph.lineTo(vertex_pos[j][0], vertex_pos[j][1]);
+            ctx_graph.stroke();
+        }
+    }
+
+    for(var i = 0; i < vertex_count; i++){
+        ctx_graph.fillStyle = fill_color;
+        ctx_graph.beginPath();
+        ctx_graph.arc(vertex_pos[i][0], vertex_pos[i][1], vertex_radius, 0, 2*Math.PI);
+        ctx_graph.fill();
+        ctx_graph.stroke();
+        ctx_graph.fillStyle = stroke_color;
+        ctx_graph.fillText("v"+to_subscript(i+1), vertex_pos[i][0], vertex_pos[i][1]);
+    }
+
+}
+
+/******************** HELPER FUNCTIONS ********************/
+
+function to_subscript(n){
+    n = ""+n;
+    r = "";
+    var num = "0123456789".split("");
+    var sub = "₀₁₂₃₄₅₆₇₈₉";
+    for(var i = 0; i < n.length; i++){
+        r += sub[num[n[i]]];
+    }
+    return r;
+}
+
+function rand(min, max){
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
+
+function mag(v){
+    return Math.sqrt(Math.pow(v[0], 2)+Math.pow(v[1], 2));
+}
+
+function norm(v){
+    var m = mag(v);
+    if(m == 0){
+        return [0, 0];
+    }
+    return [v[0]/m, v[1]/m];
+}
+
+function add(v1, v2){
+    return [v1[0]+v2[0], v1[1]+v2[1]];
+}
+
+function sub(v1, v2){
+    return [v1[0]-v2[0], v1[1]-v2[1]];
+}
+
+function scale(v, s){
+    return [v[0]*s, v[1]*s];
+}
+
+function clamp(v, max_m){
+    var m = mag(v);
+    if(m == 0){
+        return [0, 0];
+    }
+    var n = [v[0]/m, v[1]/m];
+    return scale(n, Math.min(max_m, m));
+}
+</script>
+</body>
 </html>
